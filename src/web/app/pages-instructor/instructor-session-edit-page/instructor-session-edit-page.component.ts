@@ -1,7 +1,4 @@
-import {
-  Component,
-  OnInit,
-} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import moment from 'moment-timezone';
@@ -28,6 +25,7 @@ import {
   SessionEditFormModel,
   TimeFormat,
 } from '../../components/session-edit-form/session-edit-form-model';
+import { StatusMessage } from '../../components/status-message/status-message';
 import { Course } from '../../course';
 import { FeedbackParticipantType } from '../../feedback-participant-type';
 import {
@@ -35,7 +33,13 @@ import {
   FeedbackQuestionType,
   NumberOfEntitiesToGiveFeedbackToSetting,
 } from '../../feedback-question';
-import { FeedbackSession, ResponseVisibleSetting, SessionVisibleSetting } from '../../feedback-session';
+import {
+  FeedbackSession,
+  FeedbackSessionSubmissionStatus,
+  ResponseVisibleSetting,
+  SessionVisibleSetting,
+} from '../../feedback-session';
+import { Intent } from '../../Intent';
 import { ErrorMessageOutput } from '../../message-output';
 import { TemplateQuestionModalComponent } from './template-question-modal/template-question-modal.component';
 
@@ -65,6 +69,8 @@ export class InstructorSessionEditPageComponent implements OnInit {
 
   courseName: string = '';
 
+  messages: StatusMessage[][] = [];
+
   // models
   sessionEditFormModel: SessionEditFormModel = {
     courseId: '',
@@ -87,7 +93,7 @@ export class InstructorSessionEditPageComponent implements OnInit {
     customResponseVisibleTime: { hour: 0, minute: 0 },
     customResponseVisibleDate: { year: 0, month: 0, day: 0 },
 
-    submissionStatus: '',
+    submissionStatus: FeedbackSessionSubmissionStatus.OPEN,
     publishStatus: '',
 
     isClosingEmailEnabled: true,
@@ -160,7 +166,11 @@ export class InstructorSessionEditPageComponent implements OnInit {
           this.courseName = course.courseName;
 
           // load feedback session
-          const paramMap: { [key: string]: string } = { courseid: this.courseId, fsname: this.feedbackSessionName };
+          const paramMap: { [key: string]: string } = {
+            courseid: this.courseId,
+            fsname: this.feedbackSessionName,
+            intent: Intent.FULL_DETAIL,
+          };
           this.httpRequestService.get('/session', paramMap)
               .subscribe((feedbackSession: FeedbackSession) => {
                 this.sessionEditFormModel = this.getSessionEditFormModel(feedbackSession);
@@ -365,12 +375,17 @@ export class InstructorSessionEditPageComponent implements OnInit {
    * Loads feedback questions.
    */
   loadFeedbackQuestions(): void {
-    const paramMap: { [key: string]: string } = { courseid: this.courseId, fsname: this.feedbackSessionName };
+    const paramMap: { [key: string]: string } = {
+      courseid: this.courseId,
+      fsname: this.feedbackSessionName,
+      intent: Intent.FULL_DETAIL,
+    };
     this.httpRequestService.get('/questions', paramMap)
         .subscribe((response: FeedbackQuestionsResponse) => {
           response.questions.forEach((feedbackQuestion: FeedbackQuestion) => {
             this.questionEditFormModels.push(this.getQuestionEditFormModel(feedbackQuestion));
             this.feedbackQuestionModels.set(feedbackQuestion.feedbackQuestionId, feedbackQuestion);
+            this.messages.push([]);
           });
         }, (resp: ErrorMessageOutput) => this.statusMessageService.showErrorMessage(resp.error.message));
   }
@@ -462,8 +477,8 @@ export class InstructorSessionEditPageComponent implements OnInit {
             this.normalizeQuestionNumberInQuestionForms();
           }
 
-          this.statusMessageService.showSuccessMessage('The changes to the question have been updated.');
-        }, (resp: ErrorMessageOutput) => { this.statusMessageService.showErrorMessage(resp.error.message); });
+          this.showSuccessMessage('The changes to the question have been updated.',  index);
+        }, (resp: ErrorMessageOutput) => { this.showErrorMessage(resp.error.message, index); });
   }
 
   /**
@@ -531,8 +546,8 @@ export class InstructorSessionEditPageComponent implements OnInit {
         .subscribe((newQuestion: FeedbackQuestion) => {
           this.questionEditFormModels.push(this.getQuestionEditFormModel(newQuestion));
           this.feedbackQuestionModels.set(newQuestion.feedbackQuestionId, newQuestion);
-          this.statusMessageService.showSuccessMessage('The question has been duplicated below.');
-        }, (resp: ErrorMessageOutput) => { this.statusMessageService.showErrorMessage(resp.error.message); });
+          this.showSuccessMessage('The question has been duplicated below.', index);
+        }, (resp: ErrorMessageOutput) => { this.showErrorMessage(resp.error.message, index); });
   }
 
   /**
@@ -549,8 +564,8 @@ export class InstructorSessionEditPageComponent implements OnInit {
           this.questionEditFormModels.splice(index, 1);
           this.normalizeQuestionNumberInQuestionForms();
 
-          this.statusMessageService.showSuccessMessage('The question has been deleted.');
-        }, (resp: ErrorMessageOutput) => { this.statusMessageService.showErrorMessage(resp.error.message); });
+          this.showSuccessMessage('The question has been deleted.', index);
+        }, (resp: ErrorMessageOutput) => { this.showErrorMessage(resp.error.message, index); });
   }
 
   /**
@@ -680,6 +695,30 @@ export class InstructorSessionEditPageComponent implements OnInit {
   doneEditingHandler(): void {
     this.router.navigateByUrl('/web/instructor/sessions');
     // TODO focus on the row of current feedback session in the sessions page
+  }
+
+  /**
+   * Shows a success message to the user before a specific question number
+   * @param msg The message to be shown
+   * @param num The question number
+   */
+  showSuccessMessage(msg: string, num: number): void {
+    this.messages[num].push({
+      message: msg,
+      color: StatusMessageService.COLOR_SUCCESS,
+    });
+  }
+
+  /**
+   * Shows an error message to the user before a specified question number
+   * @param msg The message to be shown
+   * @param num The question number
+   */
+  showErrorMessage(msg: string, num: number): void {
+    this.messages[num].push({
+      message: msg,
+      color: StatusMessageService.COLOR_ERROR,
+    });
   }
 
   /**

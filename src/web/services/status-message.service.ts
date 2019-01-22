@@ -10,6 +10,10 @@ import { StatusMessage } from '../app/components/status-message/status-message';
 })
 export class StatusMessageService {
 
+  static readonly COLOR_ERROR: string = 'danger';
+  static readonly COLOR_WARNING: string = 'warning';
+  static readonly COLOR_SUCCESS: string = 'success';
+
   private alertEvent: Subject<StatusMessage> = new Subject();
 
   constructor() {}
@@ -27,7 +31,7 @@ export class StatusMessageService {
   showSuccessMessage(message: string): void {
     this.showMessage({
       message,
-      color: 'success',
+      color: StatusMessageService.COLOR_SUCCESS,
     });
   }
 
@@ -37,7 +41,7 @@ export class StatusMessageService {
   showWarningMessage(message: string): void {
     this.showMessage({
       message,
-      color: 'warning',
+      color: StatusMessageService.COLOR_WARNING,
     });
   }
 
@@ -47,7 +51,7 @@ export class StatusMessageService {
   showErrorMessage(message: string): void {
     this.showMessage({
       message,
-      color: 'danger',
+      color: StatusMessageService.COLOR_ERROR,
     });
   }
 
