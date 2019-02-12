@@ -43,7 +43,10 @@ public class ActionFactory {
         map(ResourceURIs.ACCOUNTS_RESET, PUT, ResetAccountAction.class);
         map(ResourceURIs.COURSE, GET, GetCourseAction.class);
         map(ResourceURIs.COURSE, DELETE, DeleteCourseAction.class);
-        map(ResourceURIs.COURSE, PUT, ArchiveCourseAction.class);
+        map(ResourceURIs.COURSE, POST, CreateCourseAction.class);
+        map(ResourceURIs.COURSE, PUT, SaveCourseAction.class);
+        //Archive temp. changed to COURSES, not sure how to put it.
+        map(ResourceURIs.COURSES, PUT, ArchiveCourseAction.class);
         map(ResourceURIs.COURSES, GET, GetCoursesAction.class);
         map(ResourceURIs.INSTRUCTORS, DELETE, DeleteInstructorAction.class);
         map(ResourceURIs.INSTRUCTOR, GET, GetInstructorAction.class);
@@ -80,7 +83,6 @@ public class ActionFactory {
         map(ResourceURIs.COURSE_ENROLL_PAGE_DATA, GET, GetCourseEnrollPageDataAction.class);
         map(ResourceURIs.COURSE_ENROLL_STUDENTS, GET, GetCourseEnrollStudentsAction.class);
         map(ResourceURIs.INSTRUCTOR_COURSES, GET, GetInstructorCoursesAction.class);
-        map(ResourceURIs.INSTRUCTOR_COURSES, POST, AddInstructorCourseAction.class);
         map(ResourceURIs.INSTRUCTOR_COURSES_RESTORE, PUT, RestoreInstructorSoftDeletedCourseAction.class);
         map(ResourceURIs.INSTRUCTOR_COURSES_RESTORE_ALL, PUT, RestoreAllInstructorSoftDeletedCoursesAction.class);
         map(ResourceURIs.INSTRUCTOR_COURSES_PERMANENTLY_DELETE, DELETE, DeleteInstructorSoftDeletedCourseAction.class);
@@ -97,7 +99,6 @@ public class ActionFactory {
         map(ResourceURIs.STUDENT_EDIT_DETAILS, GET, GetStudentEditDetailsAction.class);
         map(ResourceURIs.COURSE_STUDENT_DETAILS_EDIT, PUT, PutCourseStudentDetailsEditAction.class);
         map(ResourceURIs.COURSE_EDIT_DETAILS, GET, GetCourseEditDetailsAction.class);
-        map(ResourceURIs.COURSE_EDIT_DETAILS_SAVE, PUT, SaveCourseEditDetailsAction.class);
         map(ResourceURIs.COURSE_DELETE, DELETE, DeleteCourseAction.class);
         map(ResourceURIs.COURSE_EDIT_INSTRUCTOR_DETAILS, POST, EditInstructorInCourseAction.class);
         map(ResourceURIs.COURSE_ADD_INSTRUCTOR, PUT, CreateInstructorInCourseAction.class);
