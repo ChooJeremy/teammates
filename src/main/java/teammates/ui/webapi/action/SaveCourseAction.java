@@ -8,6 +8,7 @@ import teammates.common.exception.EntityDoesNotExistException;
 import teammates.common.exception.InvalidParametersException;
 import teammates.common.exception.UnauthorizedAccessException;
 import teammates.common.util.Const;
+import teammates.ui.webapi.request.CourseSaveRequest;
 
 /**
  * Action: Save edited course details.
@@ -33,9 +34,11 @@ public class SaveCourseAction extends Action {
 
     @Override
     public ActionResult execute() {
-        String courseId = getNonNullRequestParamValue(Const.ParamsNames.COURSE_ID);
-        String courseName = getNonNullRequestParamValue(Const.ParamsNames.COURSE_NAME);
-        String courseTimeZone = getNonNullRequestParamValue(Const.ParamsNames.COURSE_TIME_ZONE);
+        CourseSaveRequest courseSaveRequest = getAndValidateRequestBody(CourseSaveRequest.class);
+
+        String courseId = courseSaveRequest.getCourseData().getCourseId();
+        String courseName = courseSaveRequest.getCourseData().getCourseName();
+        String courseTimeZone = courseSaveRequest.getCourseData().getTimeZone();
 
         try {
             logic.updateCourse(courseId, courseName, courseTimeZone);
