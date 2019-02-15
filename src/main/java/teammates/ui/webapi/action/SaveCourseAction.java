@@ -11,7 +11,7 @@ import teammates.common.util.Const;
 import teammates.ui.webapi.request.CourseSaveRequest;
 
 /**
- * Action: Save edited course details.
+ * Save a course.
  */
 public class SaveCourseAction extends Action {
 
