@@ -18,7 +18,7 @@ export class CourseService {
   /**
    * Creates a course by calling API.
    */
-  createCourse(courseid : string, request: CourseCreateRequest): Observable<MessageOutput> {
+  createCourse(courseid: string, request: CourseCreateRequest): Observable<MessageOutput> {
     const paramMap: { [key: string]: string } = { courseid };
     return this.httpRequestService.post('/course', paramMap, request);
   }
@@ -26,7 +26,7 @@ export class CourseService {
   /**
    * Updates a course by calling API.
    */
-  updateCourse(courseid : string, request: CourseSaveRequest): Observable<MessageOutput> {
+  updateCourse(courseid: string, request: CourseSaveRequest): Observable<MessageOutput> {
     const paramMap: { [key: string]: string } = { courseid };
     return this.httpRequestService.put('/course', paramMap, request);
   }
@@ -34,7 +34,7 @@ export class CourseService {
   /**
    * Deletes a course by calling API.
    */
-  deleteCourse(courseid : string): Observable<MessageOutput> {
+  deleteCourse(courseid: string): Observable<MessageOutput> {
     const paramMap: { [key: string]: string } = { courseid };
     return this.httpRequestService.delete('/course', paramMap);
   }
@@ -42,7 +42,7 @@ export class CourseService {
   /**
    * Archives a course by calling API.
    */
-  archiveCourse(courseid : string, request: CourseArchiveRequest): Observable<MessageOutput> {
+  archiveCourse(courseid: string, request: CourseArchiveRequest): Observable<MessageOutput> {
     const paramMap: { [key: string]: string } = { courseid };
     return this.httpRequestService.put('/course/archive', paramMap, request);
   }
