@@ -69,6 +69,8 @@ public class DeleteCourseActionTest
 
         loginAsInstructor(instructorId);
 
+        verifyCannotAccess(submissionParams);
+
         DeleteCourseAction action = getAction(submissionParams);
         action.checkSpecificAccessControl();
         JsonResult result = getJsonResult(action);
