@@ -10,8 +10,8 @@ import teammates.common.exception.EntityDoesNotExistException;
 import teammates.common.exception.InvalidParametersException;
 import teammates.common.exception.UnauthorizedAccessException;
 import teammates.common.util.Const;
-import teammates.ui.webapi.request.CourseSaveRequest;
 import teammates.common.util.FieldValidator;
+import teammates.ui.webapi.request.CourseSaveRequest;
 
 /**
  * Save a course.
@@ -37,11 +37,7 @@ public class SaveCourseAction extends Action {
 
     @Override
     public ActionResult execute() {
-        String courseId = getNonNullRequestParamValue(Const.ParamsNames.COURSE_ID);
-
         CourseSaveRequest courseSaveRequest = getAndValidateRequestBody(CourseSaveRequest.class);
-
-        String courseName = courseSaveRequest.getCourseName();
         String courseTimeZone = courseSaveRequest.getTimeZone();
 
         FieldValidator validator = new FieldValidator();
@@ -49,6 +45,9 @@ public class SaveCourseAction extends Action {
         if (!timeZoneErrorMessage.isEmpty()) {
             return new JsonResult(timeZoneErrorMessage, HttpStatus.SC_BAD_REQUEST);
         }
+
+        String courseId = getNonNullRequestParamValue(Const.ParamsNames.COURSE_ID);
+        String courseName = courseSaveRequest.getCourseName();
 
         try {
             logic.updateCourseCascade(
