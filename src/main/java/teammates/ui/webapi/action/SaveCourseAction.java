@@ -1,5 +1,7 @@
 package teammates.ui.webapi.action;
 
+import java.time.ZoneId;
+
 import org.apache.http.HttpStatus;
 
 import teammates.common.datatransfer.attributes.CourseAttributes;
@@ -9,6 +11,7 @@ import teammates.common.exception.InvalidParametersException;
 import teammates.common.exception.UnauthorizedAccessException;
 import teammates.common.util.Const;
 import teammates.ui.webapi.request.CourseSaveRequest;
+import teammates.common.util.FieldValidator;
 
 /**
  * Save a course.
@@ -41,8 +44,18 @@ public class SaveCourseAction extends Action {
         String courseName = courseSaveRequest.getCourseName();
         String courseTimeZone = courseSaveRequest.getTimeZone();
 
+        FieldValidator validator = new FieldValidator();
+        String timeZoneErrorMessage = validator.getInvalidityInfoForTimeZone(courseTimeZone);
+        if (!timeZoneErrorMessage.isEmpty()) {
+            return new JsonResult(timeZoneErrorMessage, HttpStatus.SC_BAD_REQUEST);
+        }
+
         try {
-            logic.updateCourse(courseId, courseName, courseTimeZone);
+            logic.updateCourseCascade(
+                    CourseAttributes.updateOptionsBuilder(courseId)
+                            .withName(courseName)
+                            .withTimezone(ZoneId.of(courseTimeZone))
+                            .build());
         } catch (InvalidParametersException ipe) {
             return new JsonResult(ipe.getMessage(), HttpStatus.SC_BAD_REQUEST);
         } catch (EntityDoesNotExistException edee) {

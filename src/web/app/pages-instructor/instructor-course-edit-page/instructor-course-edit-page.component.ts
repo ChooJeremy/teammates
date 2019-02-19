@@ -522,11 +522,90 @@ export class InstructorCourseEditPageComponent implements OnInit {
       instructoremail: editedInstructor.email,
       instructorrole: editedInstructor.role,
       instructordisplayname: editedInstructor.displayedName,
+      instructorisdisplayed: editedInstructor.isDisplayedToStudents.toString(),
     };
 
-    const instructorIsDisplayed: string = 'instructorisdisplayed';
-    if (editedInstructor.isDisplayedToStudents) {
-      paramsMap[instructorIsDisplayed] = 'true';
+    if (instr.controls.role.value === 'Custom') {
+      const tuneCoursePermissions: (FormGroup | null) = (instr.controls.tunePermissions as FormGroup)
+          .controls.permissionsForCourse as FormGroup;
+
+      // Append custom course level privileges
+      Object.keys(tuneCoursePermissions.controls).forEach((permission: string) => {
+        if (tuneCoursePermissions.controls[permission].value) {
+          paramsMap[permission] = 'true';
+        }
+      });
+      editedInstructor.privileges.courseLevel = tuneCoursePermissions.value;
+
+      // Append custom section level privileges
+      const tuneSectionGroupPermissions: (FormArray | null) = (instr.controls.tunePermissions as FormGroup)
+          .controls.tuneSectionGroupPermissions as FormArray;
+
+      const newSectionLevelPrivileges: { [key: string]: SectionLevelPrivileges } = {};
+      const newSessionLevelPrivileges: { [section: string]: { [session: string]: SessionLevelPrivileges } } = {};
+
+      tuneSectionGroupPermissions.controls.forEach((sectionGroupPermissions: AbstractControl, panelIdx: number) => {
+        const specialSections: string[] = [];
+
+        // Mark section as special if it has been checked in a section group
+        this.sectionNames.forEach((section: string, sectionIdx: number) => {
+          if ((sectionGroupPermissions as FormGroup).controls[section].value) {
+            paramsMap[`issectiongroup${sectionIdx}set`] = 'true';
+            paramsMap[`sectiongroup${panelIdx}section${sectionIdx}`] = section;
+            specialSections.push(section);
+          }
+        });
+
+        // Include section permissions for a section group
+        const permissionsInSection: (FormGroup | null) = (sectionGroupPermissions as FormGroup)
+            .controls.permissionsForSection as FormGroup;
+        Object.keys(permissionsInSection.controls).forEach((permission: string) => {
+          if (permissionsInSection.controls[permission].value) {
+            paramsMap[`${permission}sectiongroup${panelIdx}`] = 'true';
+          }
+        });
+
+        // Save new section level privileges
+        specialSections.forEach((section: string) => {
+          newSectionLevelPrivileges[section] = permissionsInSection.value;
+        });
+
+        // Append custom session level privileges
+        const permissionsForSessions: (FormGroup | null) = (sectionGroupPermissions as FormGroup)
+            .controls.permissionsForSessions as FormGroup;
+        const specialSessionsAndSessionPermissions: { [session: string]: SessionLevelPrivileges } = {};
+
+        // Mark session as special if a session has different permissions from the section permissions
+        const sectionLevelSessionPrivileges: SessionLevelPrivileges = {
+          canviewsessioninsection: permissionsInSection.controls.canviewsessioninsection.value,
+          cansubmitsessioninsection: permissionsInSection.controls.cansubmitsessioninsection.value,
+          canmodifysessioncommentinsection: permissionsInSection.controls.canmodifysessioncommentinsection.value,
+        };
+
+        this.feedbackNames.forEach((feedback: string) => {
+          const permissionsForSession: (FormGroup | null) = permissionsForSessions.controls[feedback] as FormGroup;
+          if (permissionsForSession.value !== sectionLevelSessionPrivileges) {
+            Object.keys(permissionsForSession.controls).forEach((permission: string) => {
+              if (permissionsForSession.controls[permission].value) {
+                paramsMap[`${permission}sectiongroup${panelIdx}feedback${feedback}`] = 'true';
+              }
+            });
+            specialSessionsAndSessionPermissions[feedback] = permissionsForSession.value;
+          }
+        });
+
+        if (Object.keys(specialSessionsAndSessionPermissions).length > 0) {
+          paramsMap[`issectiongroup${panelIdx}sessionsset`] = 'true';
+        }
+
+        // Save new section level privileges
+        specialSections.forEach((section: string) => {
+          newSessionLevelPrivileges[section] = specialSessionsAndSessionPermissions;
+        });
+      });
+
+      editedInstructor.privileges.sectionLevel = newSectionLevelPrivileges;
+      editedInstructor.privileges.sessionLevel = newSessionLevelPrivileges;
     }
 
     if (instr.controls.role.value === 'Custom') {
@@ -886,7 +965,7 @@ export class InstructorCourseEditPageComponent implements OnInit {
     // Display different text depending on who is being deleted
     if (instructorToDelete.googleId === this.instructor.googleId) {
       modalContent = 'Are you sure you want to delete your instructor role from the '
-      + `course ${courseId}? You will not be able to access the course anymore.`;
+          + `course ${courseId}? You will not be able to access the course anymore.`;
     } else {
       modalContent = `Are you sure you want to delete the instructor ${instructorToDelete.name} from the course `
           + `${courseId}? He/she will not be able to access the course anymore.`;
@@ -906,6 +985,7 @@ export class InstructorCourseEditPageComponent implements OnInit {
       courseid: this.courseToEdit.id,
       instructorid: this.instructor.googleId,
       instructoremail: instructorToDelete.email,
+      instructorisdisplayed: instructorToDelete.isDisplayedToStudents.toString(),
     };
 
     this.httpRequestService.delete('/instructors/course/details/deleteInstructor', paramsMap)
